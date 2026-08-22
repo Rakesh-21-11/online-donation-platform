@@ -35,25 +35,30 @@ export default function MyCampaigns() {
     if (!confirmDelete) return;
 
     try {
-      await fetchApi(
+      const res = await fetchApi(
         `/api/campaigns/${id}`,
         {
           method: "DELETE",
         }
       );
 
-      setCampaigns((prev) =>
-        prev.filter(
-          (campaign) =>
-            campaign._id !== id
-        )
-      );
-
-      alert(
-        "Campaign Deleted Successfully"
-      );
+      if (res.ok) {
+        setCampaigns((prev) =>
+          prev.filter(
+            (campaign) =>
+              campaign._id !== id
+          )
+        );
+        alert(
+          "Campaign Deleted Successfully 🎉"
+        );
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to delete campaign");
+      }
     } catch (error) {
       console.log(error);
+      alert("Failed to delete campaign");
     }
   };
 

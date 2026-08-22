@@ -121,14 +121,16 @@ router.get("/:id", async (req, res) => {
 // UPDATE CAMPAIGN
 router.put("/:id", async (req, res) => {
   try {
-    const campaign =
-      await Campaign.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        {
-          new: true,
-        }
-      );
+    const id = req.params.id;
+    let campaign = null;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      campaign = await Campaign.findByIdAndUpdate(id, req.body, { new: true });
+    }
+
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
 
     res.json(campaign);
   } catch (error) {
@@ -142,12 +144,20 @@ router.put("/:id", async (req, res) => {
 // DELETE CAMPAIGN
 router.delete("/:id", async (req, res) => {
   try {
-    await Campaign.findByIdAndDelete(
-      req.params.id
-    );
+    const id = req.params.id;
+    let deleted = null;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      deleted = await Campaign.findByIdAndDelete(id);
+    }
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Campaign not found or already deleted" });
+    }
 
     res.json({
-      message: "Campaign Deleted",
+      success: true,
+      message: "Campaign Deleted Successfully",
     });
   } catch (error) {
     res.status(500).json({
