@@ -127,7 +127,7 @@ export default function CampaignDetails() {
         return;
       }
 
-      const razorpayKey = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
+      const razorpayKey = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TSkx4trY3c4NKu";
       if (!razorpayKey) {
         setLoading(false);
         alert("Razorpay Public Key ID is missing. Please check your environment variables.");

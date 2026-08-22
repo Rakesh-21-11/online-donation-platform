@@ -91,7 +91,7 @@ router.post("/create-order", authMiddleware, async (req, res) => {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: process.env.RAZORPAY_KEY_ID || "",
+      keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_TSkx4trY3c4NKu",
     });
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
@@ -136,7 +136,7 @@ router.post("/verify", authMiddleware, async (req, res) => {
     }
 
     // 2. SERVER-SIDE SIGNATURE VERIFICATION
-    const keySecret = process.env.RAZORPAY_KEY_SECRET || "dummy_key_secret";
+    const keySecret = process.env.RAZORPAY_KEY_SECRET || "P6ENOPFaej6oW6zeqEwFhdhE";
     const expectedSignature = crypto
       .createHmac("sha256", keySecret)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
