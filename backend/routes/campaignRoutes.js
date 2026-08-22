@@ -42,20 +42,19 @@ router.post("/", async (req, res) => {
 router.get("/organization/:id", async (req, res) => {
   try {
     const orgId = req.params.id;
-    let user;
-    if (mongoose.Types.ObjectId.isValid(orgId)) {
-      user = await User.findById(orgId);
-    }
-    const orgName = user ? user.name : orgId;
+    const conditions = [];
 
-    const conditions = [{ organizationId: orgId }];
-    if (orgName) {
-      conditions.push({ createdBy: orgName });
-      conditions.push({ organizationId: orgName });
+    if (mongoose.Types.ObjectId.isValid(orgId)) {
+      conditions.push({ organizationId: orgId });
+      const user = await User.findById(orgId);
+      if (user && user.name) {
+        conditions.push({ createdBy: user.name });
+      }
+    } else {
+      conditions.push({ createdBy: orgId });
     }
-    if (user && user.role === "organization") {
-      conditions.push({ createdBy: "Organization" });
-    }
+
+    conditions.push({ createdBy: "Organization" });
 
     const campaigns = await Campaign.find({ $or: conditions }).sort({ createdAt: -1 });
     res.json(campaigns);
