@@ -14,6 +14,7 @@ router.post("/", async (req, res) => {
       image,
       category,
       organizationId,
+      createdBy,
     } = req.body;
 
     const campaign = await Campaign.create({
@@ -23,6 +24,7 @@ router.post("/", async (req, res) => {
       image,
       category,
       organizationId,
+      createdBy: createdBy || "Organization",
     });
 
     res.status(201).json(campaign);

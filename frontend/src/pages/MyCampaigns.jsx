@@ -20,8 +20,9 @@ export default function MyCampaigns() {
           const filtered =
             data.filter(
               (campaign) =>
-                campaign.organizationId ===
-                user?._id
+                campaign.organizationId === user?._id ||
+                campaign.organizationId === user?.name ||
+                (user?.name && campaign.createdBy === user.name)
             );
 
           setCampaigns(filtered);
