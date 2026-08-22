@@ -11,21 +11,14 @@ export default function MyCampaigns() {
   );
 
   useEffect(() => {
+    if (!user?._id) return;
     fetchApi(
-      "/api/campaigns"
+      `/api/campaigns/organization/${user._id}`
     )
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          const filtered =
-            data.filter(
-              (campaign) =>
-                campaign.organizationId === user?._id ||
-                campaign.organizationId === user?.name ||
-                (user?.name && campaign.createdBy === user.name)
-            );
-
-          setCampaigns(filtered);
+          setCampaigns(data);
         }
       })
       .catch((err) =>

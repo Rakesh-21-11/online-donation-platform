@@ -1,5 +1,7 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const Campaign = require("../models/Campaign");
+const User = require("../models/User");
 
 const router = express.Router();
 
@@ -32,6 +34,33 @@ router.post("/", async (req, res) => {
     res.status(500).json({
       message: error.message,
     });
+  }
+});
+
+
+// GET CAMPAIGNS FOR AN ORGANIZATION
+router.get("/organization/:id", async (req, res) => {
+  try {
+    const orgId = req.params.id;
+    let user;
+    if (mongoose.Types.ObjectId.isValid(orgId)) {
+      user = await User.findById(orgId);
+    }
+    const orgName = user ? user.name : orgId;
+
+    const conditions = [{ organizationId: orgId }];
+    if (orgName) {
+      conditions.push({ createdBy: orgName });
+      conditions.push({ organizationId: orgName });
+    }
+    if (user && user.role === "organization") {
+      conditions.push({ createdBy: "Organization" });
+    }
+
+    const campaigns = await Campaign.find({ $or: conditions }).sort({ createdAt: -1 });
+    res.json(campaigns);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
