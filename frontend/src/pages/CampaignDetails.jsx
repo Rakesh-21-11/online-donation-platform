@@ -23,47 +23,43 @@ export default function CampaignDetails() {
   const loadData = async () => {
     try {
       setNotFound(false);
-      const campaignRes = await fetchApi("/api/campaigns");
-      const campaignData = await campaignRes.json();
-
-      let found = null;
-      if (Array.isArray(campaignData)) {
-        found = campaignData.find((c) => c._id === id);
-      }
-
-      if (!found) {
-        const singleRes = await fetchApi(`/api/campaigns/${id}`);
-        if (singleRes.ok) {
-          const singleData = await singleRes.json();
-          if (singleData && singleData._id) {
-            found = singleData;
-          }
-        }
-      }
-
-      if (found) {
-        setCampaign(found);
-        if (Array.isArray(campaignData)) {
-          const related = campaignData
-            .filter((c) => c._id !== id && c.category === found.category)
-            .slice(0, 3);
-          setRelatedCampaigns(
-            related.length > 0
-              ? related
-              : campaignData.filter((c) => c._id !== id).slice(0, 3)
-          );
+      // 1. Fetch single campaign directly by ID for instantaneous response
+      const singleRes = await fetchApi(`/api/campaigns/${id}`);
+      if (singleRes.ok) {
+        const singleData = await singleRes.json();
+        if (singleData && singleData._id) {
+          setCampaign(singleData);
+        } else {
+          setNotFound(true);
+          return;
         }
       } else {
         setNotFound(true);
+        return;
       }
 
-      const donationRes = await fetchApi(`/api/donations/${id}`);
-      if (donationRes.ok) {
-        const donationData = await donationRes.json();
-        if (Array.isArray(donationData)) {
-          setDonations(donationData);
-        }
-      }
+      // 2. Fetch campaign donations in background
+      fetchApi(`/api/donations/${id}`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((donationData) => {
+          if (Array.isArray(donationData)) {
+            setDonations(donationData);
+          }
+        })
+        .catch(() => {});
+
+      // 3. Fetch related campaigns in background
+      fetchApi("/api/campaigns")
+        .then((r) => (r.ok ? r.json() : []))
+        .then((campaignData) => {
+          if (Array.isArray(campaignData)) {
+            const related = campaignData
+              .filter((c) => c._id !== id)
+              .slice(0, 3);
+            setRelatedCampaigns(related);
+          }
+        })
+        .catch(() => {});
     } catch (error) {
       console.error("Error loading campaign data:", error);
       setNotFound(true);
