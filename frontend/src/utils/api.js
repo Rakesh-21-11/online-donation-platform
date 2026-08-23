@@ -6,17 +6,23 @@ const isLocalhost =
   (window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1");
 
-export const API_URL =
-  import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.startsWith("http")
-    ? import.meta.env.VITE_API_URL
-    : isLocalhost
-    ? "http://localhost:5000"
-    : RENDER_API_URL;
+let envUrl = import.meta.env.VITE_API_URL || "";
+if (envUrl.includes("localhost") || envUrl.includes("127.0.0.1")) {
+  if (!isLocalhost) {
+    envUrl = RENDER_API_URL;
+  }
+}
+
+export const API_URL = envUrl && envUrl.startsWith("http")
+  ? envUrl
+  : isLocalhost
+  ? "http://localhost:5000"
+  : RENDER_API_URL;
 
 export const fetchApi = async (endpoint, options = {}) => {
   const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 
-  // On production (non-localhost mobile / web devices), directly fetch from production API URL
+  // On non-localhost devices (mobile/web), target production Render URL directly
   if (!isLocalhost) {
     try {
       const prodUrl = `${API_URL}${path}`;
@@ -29,7 +35,7 @@ export const fetchApi = async (endpoint, options = {}) => {
     return fetch(renderUrl, options);
   }
 
-  // On localhost, try local backend first
+  // On localhost developer environment
   try {
     const localUrl = `${API_URL}${path}`;
     const res = await fetch(localUrl, options);
@@ -38,7 +44,6 @@ export const fetchApi = async (endpoint, options = {}) => {
     console.warn(`Local API call to ${API_URL}${path} failed:`, err);
   }
 
-  // Fallback to Render URL on localhost if local server is down
   const renderUrl = `${RENDER_API_URL}${path}`;
   return fetch(renderUrl, options);
 };

@@ -4,6 +4,7 @@ import { fetchApi } from "../utils/api";
 
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
@@ -21,7 +22,8 @@ export default function Campaigns() {
           setCampaigns(data);
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
   }, []);
 
   const getCategoryImage = (
@@ -256,8 +258,12 @@ export default function Campaigns() {
         </div>
 
         {/* CAMPAIGNS */}
-        {filteredCampaigns.length ===
-        0 ? (
+        {loading ? (
+          <div className="bg-white rounded-xl shadow p-12 text-center text-gray-500 font-medium">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-600 border-t-transparent mb-3"></div>
+            <p>Loading Active Campaigns...</p>
+          </div>
+        ) : filteredCampaigns.length === 0 ? (
           <div className="bg-white rounded-xl shadow p-10 text-center">
 
             <h2 className="text-3xl font-bold">
