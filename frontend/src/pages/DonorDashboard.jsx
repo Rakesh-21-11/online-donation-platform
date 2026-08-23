@@ -22,17 +22,37 @@ export default function DonorDashboard() {
   });
 
   useEffect(() => {
-    setLoading(true);
+    // 1. Instant 0ms load from local cache
+    const cached = localStorage.getItem("cached_campaigns");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const sorted = [...parsed].sort(
+            (a, b) => (b.raisedAmount || 0) - (a.raisedAmount || 0)
+          );
+          setCampaigns(sorted.slice(0, 6));
+          setImpact({
+            totalRaised: parsed.reduce((sum, c) => sum + (c.raisedAmount || 0), 0),
+            totalCampaigns: parsed.length,
+          });
+          setLoading(false);
+        }
+      } catch (e) {}
+    } else {
+      setLoading(true);
+    }
 
-    // 1. Fetch active campaigns
+    // 2. Fresh background fetch
     fetchApi("/api/campaigns")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           const sorted = [...data].sort(
             (a, b) => (b.raisedAmount || 0) - (a.raisedAmount || 0)
           );
           setCampaigns(sorted.slice(0, 6));
+          localStorage.setItem("cached_campaigns", JSON.stringify(data));
 
           const totalRaised = data.reduce(
             (sum, campaign) => sum + (campaign.raisedAmount || 0),

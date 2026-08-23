@@ -15,11 +15,26 @@ export default function Campaigns() {
     if (categoryFromUrl) {
       setCategory(categoryFromUrl);
     }
+
+    // 1. Instant 0ms load from local cache
+    const cached = localStorage.getItem("cached_campaigns");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCampaigns(parsed);
+          setLoading(false);
+        }
+      } catch (e) {}
+    }
+
+    // 2. Fresh background fetch
     fetchApi("/api/campaigns")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setCampaigns(data);
+          localStorage.setItem("cached_campaigns", JSON.stringify(data));
         }
       })
       .catch((err) => console.log(err))

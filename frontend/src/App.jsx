@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { fetchApi } from "./utils/api";
 
 // Public Pages
 import RoleSelection from "./pages/RoleSelection";
@@ -46,6 +48,18 @@ function Layout({ children }) {
 }
 
 function App() {
+  useEffect(() => {
+    // Pre-warm production Render backend in background on app launch
+    fetchApi("/api/campaigns")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem("cached_campaigns", JSON.stringify(data));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
