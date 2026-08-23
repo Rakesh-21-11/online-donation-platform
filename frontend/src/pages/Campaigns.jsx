@@ -3,8 +3,24 @@ import { Link, useSearchParams } from "react-router-dom";
 import { fetchApi } from "../utils/api";
 
 export default function Campaigns() {
-  const [campaigns, setCampaigns] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [campaigns, setCampaigns] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_campaigns");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return [];
+  });
+
+  const [loading, setLoading] = useState(() => {
+    const cached = localStorage.getItem("cached_campaigns");
+    return !cached;
+  });
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
@@ -16,19 +32,7 @@ export default function Campaigns() {
       setCategory(categoryFromUrl);
     }
 
-    // 1. Instant 0ms load from local cache
-    const cached = localStorage.getItem("cached_campaigns");
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setCampaigns(parsed);
-          setLoading(false);
-        }
-      } catch (e) {}
-    }
-
-    // 2. Fresh background fetch
+    // Fresh background fetch
     fetchApi("/api/campaigns")
       .then((res) => res.json())
       .then((data) => {

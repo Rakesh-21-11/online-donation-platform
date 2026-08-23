@@ -6,9 +6,27 @@ import { fetchApi } from "../utils/api";
 export default function DonorDashboard() {
   const user = JSON.parse(localStorage.getItem("user")) || { name: "Donor" };
 
-  const [campaigns, setCampaigns] = useState([]);
+  const [campaigns, setCampaigns] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_campaigns");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return [...parsed].sort(
+            (a, b) => (b.raisedAmount || 0) - (a.raisedAmount || 0)
+          ).slice(0, 6);
+        }
+      }
+    } catch (e) {}
+    return [];
+  });
+
   const [donations, setDonations] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const [loading, setLoading] = useState(() => {
+    const cached = localStorage.getItem("cached_campaigns");
+    return !cached;
+  });
 
   const [stats, setStats] = useState({
     totalDonated: 0,
@@ -16,34 +34,24 @@ export default function DonorDashboard() {
     averageDonation: 0,
   });
 
-  const [impact, setImpact] = useState({
-    totalRaised: 0,
-    totalCampaigns: 0,
+  const [impact, setImpact] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_campaigns");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return {
+            totalRaised: parsed.reduce((sum, c) => sum + (c.raisedAmount || 0), 0),
+            totalCampaigns: parsed.length,
+          };
+        }
+      }
+    } catch (e) {}
+    return { totalRaised: 0, totalCampaigns: 0 };
   });
 
   useEffect(() => {
-    // 1. Instant 0ms load from local cache
-    const cached = localStorage.getItem("cached_campaigns");
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const sorted = [...parsed].sort(
-            (a, b) => (b.raisedAmount || 0) - (a.raisedAmount || 0)
-          );
-          setCampaigns(sorted.slice(0, 6));
-          setImpact({
-            totalRaised: parsed.reduce((sum, c) => sum + (c.raisedAmount || 0), 0),
-            totalCampaigns: parsed.length,
-          });
-          setLoading(false);
-        }
-      } catch (e) {}
-    } else {
-      setLoading(true);
-    }
-
-    // 2. Fresh background fetch
+    // Fresh background fetch
     fetchApi("/api/campaigns")
       .then((res) => res.json())
       .then((data) => {
