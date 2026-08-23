@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { API_URL, RENDER_API_URL } from "../utils/api";
+import { fetchApi } from "../utils/api";
+import { loadRazorpayScript } from "../utils/loadRazorpay";
 
 export default function DonationForm() {
   const [campaigns, setCampaigns] = useState([]);
@@ -9,22 +10,19 @@ export default function DonationForm() {
 
   useEffect(() => {
     fetchCampaigns();
+    loadRazorpayScript().catch(() => {});
   }, []);
 
   const fetchCampaigns = async () => {
     try {
-      let res;
-      try {
-        res = await fetch(`${API_URL}/api/campaigns`);
-        if (!res.ok) throw new Error("Local API error");
-      } catch (err) {
-        res = await fetch(`${RENDER_API_URL}/api/campaigns`);
-      }
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setCampaigns(data);
-        if (data.length > 0) {
-          setSelectedCampaignId(data[0]._id);
+      const res = await fetchApi("/api/campaigns");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setCampaigns(data);
+          if (data.length > 0) {
+            setSelectedCampaignId(data[0]._id);
+          }
         }
       }
     } catch (error) {
@@ -54,8 +52,8 @@ export default function DonationForm() {
     try {
       setLoading(true);
 
-      // 1. Create Razorpay order
-      let orderRes = await fetch(`${API_URL}/api/payments/create-order`, {
+      // 1. Create Razorpay order via fetchApi
+      const orderRes = await fetchApi("/api/payments/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,20 +65,6 @@ export default function DonationForm() {
         }),
       });
 
-      if (!orderRes.ok) {
-        orderRes = await fetch(`${RENDER_API_URL}/api/payments/create-order`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            campaignId: selectedCampaignId,
-            amount: Number(amount),
-          }),
-        });
-      }
-
       const orderData = await orderRes.json();
 
       if (!orderRes.ok || !orderData.success) {
@@ -89,11 +73,19 @@ export default function DonationForm() {
         return;
       }
 
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded || !window.Razorpay) {
+        setLoading(false);
+        alert("Razorpay SDK failed to load. Please check your internet connection.");
+        return;
+      }
+
       const selectedCampaign = campaigns.find((c) => c._id === selectedCampaignId);
+      const razorpayKey = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TSkx4trY3c4NKu";
 
       // 2. Open Razorpay Checkout
       const options = {
-        key: orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "",
+        key: razorpayKey,
         amount: orderData.amount,
         currency: orderData.currency || "INR",
         name: "DonationHub",
@@ -101,8 +93,8 @@ export default function DonationForm() {
         order_id: orderData.orderId,
         handler: async function (response) {
           try {
-            // 3. Verify Razorpay signature
-            const verifyRes = await fetch(`${API_URL}/api/payments/verify`, {
+            // 3. Verify Razorpay signature via fetchApi
+            const verifyRes = await fetchApi("/api/payments/verify", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -114,6 +106,7 @@ export default function DonationForm() {
                 razorpay_signature: response.razorpay_signature,
                 campaignId: selectedCampaignId,
                 amount: Number(amount),
+                donorName: user.name,
               }),
             });
 
@@ -145,12 +138,6 @@ export default function DonationForm() {
           },
         },
       };
-
-      if (!window.Razorpay) {
-        setLoading(false);
-        alert("Razorpay SDK not loaded. Please try again.");
-        return;
-      }
 
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", function (response) {

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { API_URL, RENDER_API_URL } from "../utils/api";
+import { fetchApi } from "../utils/api";
 
 export default function DonorSignup() {
   const navigate = useNavigate();
@@ -16,36 +15,25 @@ export default function DonorSignup() {
     e.preventDefault();
 
     try {
-      let res;
-      try {
-        res = await axios.post(
-          `${API_URL}/api/auth/register`,
-          {
-            ...form,
-            role: "donor",
-          }
-        );
-      } catch (err) {
-        res = await axios.post(
-          `${RENDER_API_URL}/api/auth/register`,
-          {
-            ...form,
-            role: "donor",
-          }
-        );
+      const res = await fetchApi("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          role: "donor",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Registration Successful 🎉 Please log in.");
+        navigate("/donor-login");
+      } else {
+        alert(data.message || "Signup Failed");
       }
-
-      alert("Registration Successful");
-
-      navigate("/donor-login");
-
     } catch (error) {
-
-      alert(
-        error.response?.data?.message ||
-        "Signup Failed"
-      );
-
+      alert("Signup Failed. Please try again.");
     }
   };
 
@@ -62,7 +50,6 @@ export default function DonorSignup() {
 
       {/* Signup Card */}
       <div className="relative z-10 bg-white/95 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-96">
-
         <h1 className="text-3xl font-bold text-center mb-2 text-green-600">
           Donor Signup
         </h1>
@@ -71,11 +58,7 @@ export default function DonorSignup() {
           Create Your Account
         </p>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
             placeholder="Name"
@@ -112,16 +95,11 @@ export default function DonorSignup() {
             }
           />
 
-          <button
-            className="w-full bg-green-500 hover:bg-green-600 transition text-white py-3 rounded-lg font-semibold"
-          >
+          <button className="w-full bg-green-500 hover:bg-green-600 transition text-white py-3 rounded-lg font-semibold">
             Signup
           </button>
-
         </form>
-
       </div>
-
     </div>
   );
 }

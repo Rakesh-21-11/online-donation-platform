@@ -1,7 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { API_URL, RENDER_API_URL } from "../utils/api";
+import { fetchApi } from "../utils/api";
 
 export default function DonorLogin() {
   const navigate = useNavigate();
@@ -15,38 +14,23 @@ export default function DonorLogin() {
     e.preventDefault();
 
     try {
-      let res;
-      try {
-        res = await axios.post(
-          `${API_URL}/api/auth/login`,
-          form
-        );
-      } catch (err) {
-        res = await axios.post(
-          `${RENDER_API_URL}/api/auth/login`,
-          form
-        );
+      const res = await fetchApi("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/donor-dashboard");
+      } else {
+        alert(data.message || "Login Failed");
       }
-
-      localStorage.setItem(
-        "token",
-        res.data.token
-      );
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify(res.data.user)
-      );
-
-      navigate("/donor-dashboard");
-
     } catch (error) {
-
-      alert(
-        error.response?.data?.message ||
-        "Login Failed"
-      );
-
+      alert("Login Failed. Please check your credentials.");
     }
   };
 

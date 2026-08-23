@@ -18,6 +18,7 @@ export default function CampaignDetails() {
 
   useEffect(() => {
     loadData();
+    loadRazorpayScript().catch(() => {});
   }, [id]);
 
   const loadData = async () => {
@@ -84,32 +85,17 @@ export default function CampaignDetails() {
       setLoading(true);
 
       // 1. Send amount + campaignId to backend to create Razorpay Order
-      let orderRes;
-      try {
-        orderRes = await fetch(`${API_URL}/api/payments/create-order`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            campaignId: id,
-            amount: Number(amount),
-          }),
-        });
-      } catch (err) {
-        orderRes = await fetch(`${RENDER_API_URL}/api/payments/create-order`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            campaignId: id,
-            amount: Number(amount),
-          }),
-        });
-      }
+      const orderRes = await fetchApi("/api/payments/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          campaignId: id,
+          amount: Number(amount),
+        }),
+      });
 
       const orderData = await orderRes.json();
 
@@ -145,7 +131,7 @@ export default function CampaignDetails() {
         handler: async function (response) {
           try {
             // 3. Send Razorpay payment response to backend for signature verification
-            const verifyRes = await fetch(`${API_URL}/api/payments/verify`, {
+            const verifyRes = await fetchApi("/api/payments/verify", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
