@@ -52,17 +52,24 @@ mongoose
     console.log(err)
   );
 
-app.get("/", (req, res) => {
-  res.send(
-    "DonationHub Backend Running"
-  );
+app.get("/api/ping", (req, res) => {
+  res.json({ status: "ok", time: new Date().toISOString() });
 });
 
-const PORT =
-  process.env.PORT || 5000;
+app.get("/", (req, res) => {
+  res.send("DonationHub Backend Running");
+});
+
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(
-    `Server running on port ${PORT}`
-  );
+  console.log(`Server running on port ${PORT}`);
+
+  // Self-ping every 10 minutes to prevent Render free-tier spin down
+  setInterval(() => {
+    fetch("https://online-donation-platform-x9rc.onrender.com/api/ping")
+      .then((r) => r.json())
+      .then((d) => console.log("Keep-alive ping success:", d.time))
+      .catch(() => {});
+  }, 10 * 60 * 1000);
 });

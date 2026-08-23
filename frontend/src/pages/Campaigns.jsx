@@ -2,6 +2,39 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchApi } from "../utils/api";
 
+const DEFAULT_FALLBACK_CAMPAIGNS = [
+  {
+    _id: "6a898727aeb61392ed76a403",
+    title: "Help Needed",
+    description: "Supporting Community Cause",
+    goalAmount: 50000,
+    raisedAmount: 0,
+    category: "Food",
+    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c",
+    createdBy: "RAJU"
+  },
+  {
+    _id: "6a8983036a8dbf5fff64dedc",
+    title: "greenearth",
+    description: "Donate plants and protect our environment",
+    goalAmount: 10000,
+    raisedAmount: 0,
+    category: "Disaster Relief",
+    image: "https://images.unsplash.com/photo-1521295121783-8a321d551ad2",
+    createdBy: "Organization"
+  },
+  {
+    _id: "6a89787d841e17330653c1f2",
+    title: "Clean Water Initiative",
+    description: "Providing clean drinking water to rural areas",
+    goalAmount: 50000,
+    raisedAmount: 0,
+    category: "Food",
+    image: "https://images.unsplash.com/photo-1509062522246-3755977927d7",
+    createdBy: "Organization"
+  }
+];
+
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState(() => {
     try {
@@ -13,13 +46,10 @@ export default function Campaigns() {
         }
       }
     } catch (e) {}
-    return [];
+    return DEFAULT_FALLBACK_CAMPAIGNS;
   });
 
-  const [loading, setLoading] = useState(() => {
-    const cached = localStorage.getItem("cached_campaigns");
-    return !cached;
-  });
+  const [loading, setLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
