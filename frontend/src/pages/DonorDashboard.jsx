@@ -164,6 +164,28 @@ export default function DonorDashboard() {
           />
         </div>
 
+        {/* AI CAMPAIGN RECOMMENDATION CTA BANNER */}
+        <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 text-white rounded-3xl p-8 shadow-xl mb-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border border-purple-400/30">
+          <div className="relative z-10">
+            <span className="bg-white/20 backdrop-blur-md text-yellow-300 text-xs font-extrabold px-3.5 py-1 rounded-full uppercase tracking-wider">
+              ✨ Smart Personalization
+            </span>
+            <h2 className="text-3xl font-extrabold mt-3">AI Campaign Recommendations</h2>
+            <p className="text-purple-100 text-sm mt-2 max-w-xl leading-relaxed">
+              Let our AI recommendation engine match you with active campaigns based on your favorite causes like Education, Healthcare, Environment, and Rural Development.
+            </p>
+          </div>
+          <div className="relative z-10 shrink-0">
+            <Link
+              to="/ai-recommendations"
+              className="bg-yellow-400 hover:bg-yellow-300 text-purple-950 font-extrabold px-6 py-3.5 rounded-2xl shadow-lg transition-all transform hover:scale-105 inline-flex items-center gap-2"
+            >
+              <span>🤖</span> Explore AI Matches
+            </Link>
+          </div>
+          <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6 mb-10">
           <div className="bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-2xl p-6 shadow-lg">
             <h2 className="text-2xl font-bold">❤️ Community Impact</h2>

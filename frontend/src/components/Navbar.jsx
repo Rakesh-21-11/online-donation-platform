@@ -51,6 +51,10 @@ export default function Navbar() {
                 Home
               </Link>
 
+              <Link to="/ai-recommendations" className="bg-yellow-400 text-purple-950 px-3 py-1 rounded-lg font-extrabold hover:bg-yellow-300 transition shadow-sm flex items-center gap-1 text-sm">
+                ✨ AI Recommendations
+              </Link>
+
               <Link to="/campaigns" className="hover:text-yellow-300 transition">
                 Campaigns
               </Link>

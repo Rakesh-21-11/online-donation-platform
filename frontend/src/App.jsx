@@ -14,6 +14,7 @@ import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import MyCampaigns from "./pages/MyCampaigns";
 import MyDonations from "./pages/MyDonations";
+import AiRecommendations from "./pages/AiRecommendations";
 
 import DonorAuth from "./pages/DonorAuth";
 import OrganizationAuth from "./pages/OrganizationAuth";
@@ -123,6 +124,19 @@ function App() {
               <RoleProtectedRoute allowedRole="donor">
                 <Layout>
                   <DonorDashboard />
+                </Layout>
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/ai-recommendations"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRole="donor">
+                <Layout>
+                  <AiRecommendations />
                 </Layout>
               </RoleProtectedRoute>
             </ProtectedRoute>
